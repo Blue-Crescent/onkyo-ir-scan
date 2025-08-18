@@ -1,6 +1,12 @@
 #include <TimerOne.h>
+#include <Arduino.h>
+#include <TM1637.h>
+// #include <avr/io.h>
+// #include <avr/interrupt.h>
 
-#define TX_PIN 4  // 出力ピン
+#define TX_PIN 7  // 出力ピン
+#define DIO 2
+#define CLK 4
 
 #define MAX_PULSES 32 // ヘッダ2 + データ12*2 + トレーラ2 = 28
 
@@ -9,6 +15,9 @@ volatile uint8_t  pulseLevels[MAX_PULSES];
 volatile uint8_t  pulseCount = 0;
 volatile uint8_t  pulseIndex = 0;
 volatile bool     sending = false;
+
+TM1637 led(CLK, DIO);
+
 
 void enqueuePulse(uint8_t level, uint16_t dur_ms) {
   if (pulseCount >= MAX_PULSES) return;
@@ -74,21 +83,28 @@ void setup() {
   Timer1.initialize(1000); // 仮初期化
   Timer1.setPeriod(1000);
   Timer1.attachInterrupt(pulseHandler);
+
   pinMode(TX_PIN, OUTPUT);
+  led.begin();
   digitalWrite(TX_PIN, LOW);
  
-  delay(1000);
-  digitalWrite(TX_PIN, LOW); // Output High
-  delay(5000);
-  digitalWrite(TX_PIN, HIGH); // OUtput Low
-  delay(2000);
+  //delay(1000);
+  //digitalWrite(TX_PIN, LOW); // Output High
+  //delay(5000);
+  //digitalWrite(TX_PIN, HIGH); // OUtput Low
+  //delay(2000);
 }
 
 void loop() {
   // 送信完了後に別のデータを送信
   if (!sending) {
-    delay(2000);
-    sendCode(0x1AF); // Power ON
+    for (uint16_t code = 0x0; code <=0xFFF; code++){
+      delay(1000);
+      char text[4];
+      sprintf(text, "%03xH",code);
+      led.display(String(text));
+      sendCode(code); // Power ON
+    }
   }
   // if (!sending) {
   //   delay(2000);
