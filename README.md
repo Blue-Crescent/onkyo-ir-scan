@@ -1,4 +1,4 @@
-# ONKYO IR scan
+# ONKYO RI port scan
 
 TX-NX7SR
 
